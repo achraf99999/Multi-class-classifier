@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ml-classifier"
+version = "0.1.0"
+description = "Multi-class text classifier for arXiv metadata. Clean, modular, maintainable design over predictive metrics."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=1.5.0,<3.0.0",
+    "scikit-learn>=1.2.0,<2.0.0",
+]
+
+[project.scripts]
+ml-classifier = "ml_classifier.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.0",
+]
+
+[tool.hatch.build.targets.wheel]
+# src layout: package in src/ml_classifier, installed as ml_classifier
+packages = ["src/ml_classifier"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.4.0",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
