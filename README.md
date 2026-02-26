@@ -1,6 +1,6 @@
 # Multi-class classifier (arXiv metadata)
 
-This project trains a **multi-class text classifier** on arXiv paper metadata and outputs a **probability distribution over four classes** for each paper. Records are linked by `id` between the metadata and the target labels; the model uses **title**, **abstract**, and **categories** to predict the label and writes one row per `id` with columns `prob_1`–`prob_4`.
+This project trains a **multi-class text classifier** on arXiv paper metadata and outputs a **probability distribution over four classes** for each paper. Records are linked by `id` between the metadata and the target labels; the model uses **title**, **abstract**, and **categories** to predict the label and writes one row per `id` with columns `prob_1`–`prob_4`. For a more detailed description of the solution approach, key decisions, and what we would do differently with more time or in production, see [SOLUTION.md](SOLUTION.md).
 
 ## Parameters and how the pipeline works
 
@@ -146,3 +146,8 @@ ml_classifier/
 ---
 
 **Quick reference:** Put `sample_data.json` and `sample_targets.csv` in the parent of `ml_classifier/`, then run `uv run ml-classifier`. Results go to `output/run_YYYYMMDD_HHMMSS/predictions.csv` and `run_info.json`.
+
+## References
+
+- [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html) — scikit-learn: exhaustive search over specified parameter values for an estimator.
+- [LogisticRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html) — scikit-learn: logistic regression (logit, MaxEnt) classifier.
