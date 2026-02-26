@@ -13,7 +13,7 @@ A **multi-class classifier** that predicts one of four categories (targets 1–4
 ## How the pipeline works
 
 1. **Load and merge**  
-   We load `sample_data.json` and `sample_targets.csv` and merge them on `id` (inner join). Only rows that appear in both files are kept. Any target ids missing from the JSON are logged so you can spot data issues.
+   We load `sample_data.json` and `sample_targets.csv` from `input_data/` and merge them on `id` (inner join). Only rows that appear in both files are kept. Any target ids missing from the JSON are logged so you can spot data issues.
 
 2. **Train/validation split**  
    The merged data is split 80% train / 20% validation, with **stratification** on `target` so class proportions stay roughly the same in both sets. There’s no separate test set in this setup; with more time we’d add a held-out test split and report only on that.

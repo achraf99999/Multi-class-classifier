@@ -40,7 +40,7 @@ This creates a virtual environment (`.venv`) and installs the package in editabl
 
 ## Data
 
-The pipeline reads **sample_data.json** and **sample_targets.csv** from the **directory that contains the project folder** (one level above the repo root). Put both files there so the default config finds them without changes.
+The pipeline reads **sample_data.json** and **sample_targets.csv** from **`input_data/`** inside the project. Put both files there so the default config finds them without changes.
 
 **Required files**
 
@@ -51,18 +51,18 @@ Both files are linked by their shared **`id`** feature. The pipeline **merges** 
 
 **Directory layout**
 
-If your project lives at `…/ml_classifier/`, place the data files in the parent directory:
+Place the data files in `input_data/` at the project root:
 
 ```
-…/parent_dir/
-  sample_data.json
-  sample_targets.csv
-  ml_classifier/
-    pyproject.toml
-    run.py
-    src/
-      ml_classifier/
-    ...
+ml_classifier/
+  input_data/
+    sample_data.json
+    sample_targets.csv
+  pyproject.toml
+  run.py
+  src/
+    ml_classifier/
+  ...
 ```
 
 To use a different location, set `DATA_DIR`, `SAMPLE_DATA_PATH`, or `SAMPLE_TARGETS_PATH` in `src/ml_classifier/config.py`.
@@ -114,6 +114,9 @@ ml_classifier/
 ├── run.py                 # Thin wrapper: calls ml_classifier.cli.main()
 ├── README.md
 ├── SOLUTION.md
+├── input_data/            # Input data (default location)
+│   ├── sample_data.json
+│   └── sample_targets.csv
 ├── output/
 │   ├── run_20260226_143022/
 │   │   ├── predictions.csv   # One run’s results (timestamped; no overwrite)
@@ -124,7 +127,7 @@ ml_classifier/
 │
 └── src/ml_classifier/     # The package (import name: ml_classifier)
     ├── __init__.py
-    ├── config.py          # Paths (data in parent dir), SEED, VAL_RATIO, class labels
+    ├── config.py          # Paths (data in input_data/), SEED, VAL_RATIO, class labels
     ├── cli.py             # Single entrypoint: load → split → train → predict → save CSV
     │
     ├── data/              # Data layer only (I/O, no features or model)
@@ -145,7 +148,7 @@ ml_classifier/
 
 ---
 
-**Quick reference:** Put `sample_data.json` and `sample_targets.csv` in the parent of `ml_classifier/`, then run `uv run ml-classifier`. Results go to `output/run_YYYYMMDD_HHMMSS/predictions.csv` and `run_info.json`.
+**Quick reference:** Put `sample_data.json` and `sample_targets.csv` in `input_data/`, then run `uv run ml-classifier`. Results go to `output/run_YYYYMMDD_HHMMSS/predictions.csv` and `run_info.json`.
 
 ## References
 

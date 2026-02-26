@@ -7,8 +7,8 @@ from pathlib import Path
 
 # Project root (directory containing pyproject.toml)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
-# Data files: expected in parent of project root (override by setting DATA_DIR)
-DATA_DIR = PROJECT_ROOT.parent
+# Data files: expected in input_data/ inside the project (override by setting DATA_DIR)
+DATA_DIR = PROJECT_ROOT / "input_data"
 SAMPLE_DATA_PATH = DATA_DIR / "sample_data.json"
 SAMPLE_TARGETS_PATH = DATA_DIR / "sample_targets.csv"
 
