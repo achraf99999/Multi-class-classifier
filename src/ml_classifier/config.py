@@ -34,4 +34,3 @@ CLASS_LABELS = [1, 2, 3, 4]
 
 # Output
 OUTPUT_DIR = PROJECT_ROOT / "output"
-PREDICTIONS_PATH = OUTPUT_DIR / "predictions.csv"
