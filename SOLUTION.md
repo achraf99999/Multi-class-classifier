@@ -26,7 +26,7 @@ A **multi-class classifier** that predicts one of four categories (targets 1–4
    - **TfidfVectorizer**: `max_features=50_000`, `ngram_range=(1, 2)`, `sublinear_tf=True`
    - **LogisticRegression**: `max_iter=500`, `class_weight='balanced'`
 
-   We fit the pipeline on the training text and targets. Validation metrics (accuracy, macro F1, log loss) are computed and logged for transparency; no hyperparameter tuning was done.
+   By default, **hyperparameter tuning** (GridSearchCV) is enabled: the pipeline is tuned on the training set (e.g. over `max_features`, `ngram_range`, `C`) and the best estimator is used for validation and prediction. You can turn it off with `--no-tune`. Validation metrics (accuracy, macro F1, log loss) are computed and logged; when tuning is used, best params are saved in `run_info.json`.
 
 5. **Predictions**  
    For every id that appears in both input files, we build text features with the same function, run `predict_proba`, and write a CSV with columns `id`, `prob_1`, `prob_2`, `prob_3`, `prob_4`. Row order matches `sample_targets.csv`.
@@ -52,7 +52,7 @@ A **multi-class classifier** that predicts one of four categories (targets 1–4
 ## What we’d do differently with more time
 
 - **Hyperparameter tuning**  
-  Run a grid or random search over the vectorizer (e.g. `max_features`, `ngram_range`) and classifier (e.g. `C`, solver), with cross-validation.
+  Grid search over the vectorizer and classifier is now implemented and on by default (see README for `--tune` / `--no-tune`). With more time we could extend the grid (e.g. more `C` values, solvers) or use random search.
 
 - **Richer feature engineering**  
   Separate TF-IDF for title vs abstract with different weights; one-hot or embedding for categories; explicit handling of missing abstract/categories.
