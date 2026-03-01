@@ -148,7 +148,7 @@ ml_classifier/
 
 ---
 
-**Quick reference:** Put `sample_data.json` and `sample_targets.csv` in `input_data/`, then run `uv run ml-classifier`. Results go to `output/run_YYYYMMDD_HHMMSS/predictions.csv` and `run_info.json`.
+
 
 ## References
 
