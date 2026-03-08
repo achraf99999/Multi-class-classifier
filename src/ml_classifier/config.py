@@ -19,6 +19,15 @@ SEED = 42
 VAL_RATIO = 0.2
 STRATIFY_COL = "target"
 
+# Text representation: "tfidf" or "legalbert"
+EMBEDDING_METHOD = "tfidf"
+
+# Legal-BERT (used when EMBEDDING_METHOD == "legalbert")
+# Model: https://huggingface.co/nlpaueb/legal-bert-base-uncased
+LEGAL_BERT_MODEL = "nlpaueb/legal-bert-base-uncased"
+BERT_MAX_LENGTH = 512
+BERT_BATCH_SIZE = 16
+
 # Hyperparameter tuning: if True, use GridSearchCV; if False, fit with defaults only
 USE_HYPERPARAMETER_TUNING = True
 TUNING_CV = 3  # number of CV folds for grid search

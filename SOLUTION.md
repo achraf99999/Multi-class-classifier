@@ -22,11 +22,12 @@ A **multi-class classifier** that predicts one of four categories (targets 1–4
    For each record we build a single text field by concatenating `title`, `abstract`, and `categories` (nulls become empty strings). The same logic is used everywhere—training, validation, and final prediction—so we avoid feature drift and bugs.
 
 4. **Model**  
-   A scikit-learn **Pipeline** with:
-   - **TfidfVectorizer**: `max_features=50_000`, `ngram_range=(1, 2)`, `sublinear_tf=True`
-   - **LogisticRegression**: `max_iter=500`, `class_weight='balanced'`
+   You can choose the text representation via **`--method tfidf`** (default) or **`--method legalbert`**.
 
-   By default, **hyperparameter tuning** (GridSearchCV) is enabled: the pipeline is tuned on the training set (e.g. over `max_features`, `ngram_range`, `C`) and the best estimator is used for validation and prediction. You can turn it off with `--no-tune`. Validation metrics (accuracy, macro F1, log loss) are computed and logged; when tuning is used, best params are saved in `run_info.json`.
+   - **TF-IDF** — A scikit-learn **Pipeline** with **TfidfVectorizer** (`max_features=50_000`, `ngram_range=(1, 2)`, `sublinear_tf=True`) and **LogisticRegression** (`max_iter=500`, `class_weight='balanced'`). By default, **hyperparameter tuning** (GridSearchCV) is enabled; turn it off with `--no-tune`.
+   - **Legal-BERT** — Text is embedded with [Legal-BERT](https://huggingface.co/nlpaueb/legal-bert-base-uncased) (nlpaueb/legal-bert-base-uncased); the [CLS] token representation is used as the document vector. A **LogisticRegression** classifier is trained on these embeddings. No tuning; first run downloads the model from Hugging Face.
+
+   Validation metrics (accuracy, macro F1, log loss) are computed and logged; for TF-IDF with tuning, best params are saved in `run_info.json`.
 
 5. **Predictions**  
    For every id that appears in both input files, we build text features with the same function, run `predict_proba`, and write a CSV with columns `id`, `prob_1`, `prob_2`, `prob_3`, `prob_4`. Row order matches `sample_targets.csv`.

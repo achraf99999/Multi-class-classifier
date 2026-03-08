@@ -20,6 +20,7 @@ from ml_classifier.data.split import train_val_split
 from ml_classifier.features.build import build_text_features
 from ml_classifier.model.predict import predict_proba_df
 from ml_classifier.model.train import train_pipeline, train_with_cv
+from ml_classifier.model.legalbert import train_legalbert
 
 
 def _parse_ngram_range(s: str) -> tuple[int, int]:
@@ -33,6 +34,13 @@ def _parse_ngram_range(s: str) -> tuple[int, int]:
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Train multi-class classifier and write predictions to output/run_YYYYMMDD_HHMMSS/.",
+    )
+    parser.add_argument(
+        "--method",
+        choices=["tfidf", "legalbert"],
+        default=None,
+        metavar="METHOD",
+        help="Text representation: tfidf (default) or legalbert (Legal-BERT embeddings + classifier)",
     )
     parser.add_argument(
         "--max-features",
@@ -80,6 +88,8 @@ def main() -> None:
     args = _parse_args()
 
     # Apply CLI overrides to config so rest of pipeline sees them
+    if args.method is not None:
+        config.EMBEDDING_METHOD = args.method
     if args.max_features is not None:
         config.MODEL_MAX_FEATURES = args.max_features
     if args.ngram_range is not None:
@@ -115,22 +125,32 @@ def main() -> None:
     train_text = build_text_features(train_df)
     val_text = build_text_features(val_df)
 
-    # 4. Train pipeline (with or without hyperparameter tuning)
-    use_tuning = getattr(config, "USE_HYPERPARAMETER_TUNING", False)
-    if use_tuning:
-        pipeline, class_labels, metrics = train_with_cv(
+    # 4. Train pipeline (TF-IDF or Legal-BERT; TF-IDF can use tuning)
+    embedding_method = getattr(config, "EMBEDDING_METHOD", "tfidf").lower()
+    use_tuning = False
+    if embedding_method == "legalbert":
+        pipeline, class_labels, metrics = train_legalbert(
             train_text,
             train_df[config.STRATIFY_COL],
             val_text,
             val_df[config.STRATIFY_COL],
         )
     else:
-        pipeline, class_labels, metrics = train_pipeline(
-            train_text,
-            train_df[config.STRATIFY_COL],
-            val_text,
-            val_df[config.STRATIFY_COL],
-        )
+        use_tuning = getattr(config, "USE_HYPERPARAMETER_TUNING", False)
+        if use_tuning:
+            pipeline, class_labels, metrics = train_with_cv(
+                train_text,
+                train_df[config.STRATIFY_COL],
+                val_text,
+                val_df[config.STRATIFY_COL],
+            )
+        else:
+            pipeline, class_labels, metrics = train_pipeline(
+                train_text,
+                train_df[config.STRATIFY_COL],
+                val_text,
+                val_df[config.STRATIFY_COL],
+            )
 
     # 5. Predict on full merged dataset (one row per id in merged)
     pred_df = predict_proba_df(pipeline, merged, class_labels)
@@ -159,6 +179,7 @@ def main() -> None:
             "predictions_count": num_predictions,
         },
         "config": {
+            "embedding_method": embedding_method,
             "val_ratio": config.VAL_RATIO,
             "seed": config.SEED,
             "use_hyperparameter_tuning": use_tuning,

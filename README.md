@@ -6,9 +6,12 @@ This project trains a **multi-class text classifier** on arXiv paper metadata an
 
 The pipeline uses **sample_data.json** (features: title, abstract, categories) and **sample_targets.csv** (labels: id, target), merged on `id`. See **Data** for where to place the files and how the merge works.
 
-Text from `title`, `abstract`, and `categories` is concatenated and fed to a **TfidfVectorizer**, then a **LogisticRegression** classifier. You can override the following via config or CLI.
+You can choose how text is represented before classification:
 
-**Pipeline parameters**
+- **`--method tfidf`** (default) — Text is vectorized with **TfidfVectorizer**, then classified with **LogisticRegression**. Fast, no GPU required.
+- **`--method legalbert`** — Text is embedded with [Legal-BERT](https://huggingface.co/nlpaueb/legal-bert-base-uncased) ([nlpaueb/legal-bert-base-uncased](https://huggingface.co/nlpaueb/legal-bert-base-uncased)), then a **LogisticRegression** head is trained on the [CLS] embeddings. Better for legal/formal text; requires more memory and optionally a GPU. See [Legal-BERT (opensource.legal)](https://opensource.legal/projects/Legal_BERT).
+
+**Pipeline parameters (TF-IDF only)**
 
 | Parameter      | Role                            | Default | CLI override       |
 |----------------|----------------------------------|---------|--------------------|
@@ -18,9 +21,9 @@ Text from `title`, `abstract`, and `categories` is concatenated and fed to a **T
 
 **Run mode**
 
-- **Default** — Uses config (and built-in defaults above). If `USE_HYPERPARAMETER_TUNING` is true in config, GridSearchCV runs and the best params are used.
-- **Override** — Pass `--max-features`, `--ngram-range`, and/or `--max-iter` to fix those for the run.
-- **Tuning** — `--tune` turns on hyperparameter tuning; `--no-tune` turns it off. `--tuning-cv K` sets the number of CV folds when tuning.
+- **Default** — Uses config (and built-in defaults). With `--method tfidf`, if `USE_HYPERPARAMETER_TUNING` is true in config, GridSearchCV runs.
+- **Override** — Pass `--max-features`, `--ngram-range`, and/or `--max-iter` to fix those for the run (TF-IDF only).
+- **Tuning** — `--tune` / `--no-tune` and `--tuning-cv K` apply only to the TF-IDF pipeline. Legal-BERT uses fixed LogisticRegression on top of frozen embeddings.
 
 ## Requirements
 
@@ -85,14 +88,16 @@ This will load and merge the data, split into train/validation (80/20, stratifie
 
 ### CLI behavior
 
-- **Run with no args** — Uses defaults from config (and built-in defaults for model params). If `USE_HYPERPARAMETER_TUNING` is true in config, tuning runs; otherwise the pipeline is fit with default params.
-- **Override params** — Pass `--max-features N`, `--ngram-range MIN,MAX` (e.g. `1,2`), and/or `--max-iter N` to override those pipeline parameters for that run. Unset options fall back to config or built-in defaults.
-- **Tuning mode** — `--tune` forces hyperparameter tuning (GridSearchCV); best params are used for prediction. `--no-tune` disables tuning and uses the given or default params only.
+- **Text representation** — `--method tfidf` (default) or `--method legalbert` to choose between TF-IDF and Legal-BERT embeddings.
+- **Run with no args** — Uses defaults from config (and built-in defaults for model params). With TF-IDF, if `USE_HYPERPARAMETER_TUNING` is true in config, tuning runs.
+- **Override params** — Pass `--max-features N`, `--ngram-range MIN,MAX` (e.g. `1,2`), and/or `--max-iter N` to override those pipeline parameters (TF-IDF only). Unset options fall back to config or built-in defaults.
+- **Tuning mode** — `--tune` / `--no-tune` and `--tuning-cv K` apply only when `--method tfidf`.
 
 Examples:
 
 ```bash
-uv run ml-classifier --no-tune
+uv run ml-classifier --method tfidf --no-tune
+uv run ml-classifier --method legalbert
 uv run ml-classifier --max-features 30000 --ngram-range 1,2 --no-tune
 uv run ml-classifier --tune --tuning-cv 5
 uv run ml-classifier --help
@@ -138,8 +143,9 @@ ml_classifier/
     │   └── build.py       # build_text_features(df) → title + abstract + categories (no vectorizer)
     │
     └── model/             # Model layer: pipeline + predict
-        ├── train.py       # train_pipeline(...) → (Pipeline, class_labels)
-        └── predict.py     # predict_proba_df(pipeline, df, class_labels) → CSV-shaped DataFrame
+        ├── train.py       # TF-IDF: train_pipeline / train_with_cv
+        ├── legalbert.py   # Legal-BERT: embeddings + LogisticRegression
+        └── predict.py     # predict_proba_df(estimator, df, class_labels) → CSV-shaped DataFrame
 ```
 
 **Flow:** `cli.py` imports from `config`, `data`, `features`, and `model`; runs the pipeline; writes to `output/run_YYYYMMDD_HHMMSS/predictions.csv` so every run is kept. Same feature builder is used for training and prediction (one code path).
